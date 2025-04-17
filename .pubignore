@@ -1,0 +1,2 @@
+# Ignore large native binaries
+/ios/MoproiOSBindings/MoproBindings.xcframework/
