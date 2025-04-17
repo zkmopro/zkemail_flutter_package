@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:zkemail_flutter_package/zkemail_flutter_package_platform_interface.dart';
@@ -28,6 +29,11 @@ class _MyAppState extends State<MyApp> {
   VerifyZkEmailResult? _verificationResult;
   String _status = 'Idle';
   String? _errorMessage;
+  int? _provingTimeMillis;
+  int? _verifyingTimeMillis;
+
+  // Track busy state
+  bool _isBusy = false;
 
   @override
   void initState() {
@@ -41,6 +47,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _status = 'Copying assets...';
       _errorMessage = null;
+      _isBusy = true;
     });
     try {
       // Define asset paths relative to the 'assets' folder in pubspec.yaml
@@ -55,11 +62,13 @@ class _MyAppState extends State<MyApp> {
         _zkEmailInputPath = inputPath;
         _srsPath = srsPath;
         _status = 'Assets copied successfully. Ready.';
+        _isBusy = false;
       });
     } catch (e) {
       setState(() {
         _status = 'Error copying assets';
         _errorMessage = e.toString();
+        _isBusy = false;
       });
       print("Error copying assets: $e");
     }
@@ -102,6 +111,7 @@ class _MyAppState extends State<MyApp> {
       _proofResult = null; // Clear previous results
       _verificationResult = null;
       _errorMessage = null;
+      _isBusy = true; // Start busy state
     });
 
     try {
@@ -113,16 +123,21 @@ class _MyAppState extends State<MyApp> {
       });
 
       // Generate the proof
+      final stopwatch = Stopwatch()..start();
       final result = await _zkemailFlutterPackagePlugin.proveZkEmail(_srsPath!, inputs);
+      stopwatch.stop();
 
       setState(() {
         _proofResult = result;
+        _provingTimeMillis = stopwatch.elapsedMilliseconds;
         _status = result != null ? 'Proof generated successfully!' : 'Proof generation failed (result is null)';
+        _isBusy = false; // End busy state
       });
     } catch (e) {
       setState(() {
         _status = 'Error generating proof';
         _errorMessage = e.toString();
+        _isBusy = false; // End busy state on error
       });
       print("Error generating proof: $e");
     }
@@ -142,20 +157,26 @@ class _MyAppState extends State<MyApp> {
       _status = 'Verifying proof...';
       _verificationResult = null; // Clear previous verification result
       _errorMessage = null;
+      _isBusy = true; // Start busy state
     });
 
     try {
       // Verify the proof
+      final stopwatch = Stopwatch()..start();
       final result = await _zkemailFlutterPackagePlugin.verifyZkEmail(_srsPath!, _proofResult!.proof!);
+      stopwatch.stop();
 
       setState(() {
         _verificationResult = result;
+        _verifyingTimeMillis = stopwatch.elapsedMilliseconds;
         _status = result != null ? 'Verification finished.' : 'Verification failed (result is null)';
+        _isBusy = false; // End busy state
       });
     } catch (e) {
       setState(() {
         _status = 'Error verifying proof';
         _errorMessage = e.toString();
+        _isBusy = false; // End busy state on error
       });
       print("Error verifying proof: $e");
     }
@@ -164,62 +185,179 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        cardTheme: CardTheme(
+          elevation: 2.0,
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+            textStyle: const TextStyle(fontSize: 16.0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+          ),
+        ),
+        textTheme: const TextTheme(
+           titleMedium: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500), // For ListTile titles
+           bodyMedium: TextStyle(fontSize: 14.0), // Default text
+           labelLarge: TextStyle(fontSize: 16.0), // For button text
+        ),
+      ),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('zkEmail Flutter Example'),
+          elevation: 0, // Cleaner look
         ),
-        body: Padding( // Added padding for better layout
+        body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: SingleChildScrollView( // Added for scrollability if content overflows
-              child: Column( // Changed to Column for multiple widgets
-                mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
-                crossAxisAlignment: CrossAxisAlignment.center, // Center content horizontally
-                children: <Widget>[
-                  Text('Platform Version: $_platformVersion\n'),
-                  const SizedBox(height: 10), // Spacing
-                  Text('Status: $_status'), // Display current status
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      'Error: $_errorMessage',
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                  const SizedBox(height: 20), // Spacing
-                  ElevatedButton(
-                    onPressed: (_status == 'Generating proof...' || _status == 'Verifying proof...' || _status == 'Copying assets...') ? null : _callProveZkEmail, // Disable button while busy
-                    child: const Text('Generate zkEmail Proof'),
-                  ),
-                  const SizedBox(height: 10), // Spacing
-                   if (_proofResult != null) ...[ // Display proof details if available
-                    const Text('Proof Generated:'),
-                    // Displaying proof length as an example detail
-                    Text('Proof Bytes Length: ${_proofResult?.proof?.length ?? 'N/A'}'),
-                    // Optionally display public inputs if needed (requires formatting)
-                    // Text('Public Inputs: ${_proofResult?.publicInputs ?? 'N/A'}'),
-                    const SizedBox(height: 10),
-                     ElevatedButton(
-                      onPressed: (_status == 'Verifying proof...' || _proofResult?.proof == null) ? null : _callVerifyZkEmail, // Disable if verifying or no proof
-                      child: const Text('Verify zkEmail Proof'),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                  if (_verificationResult != null) ...[ // Display verification result
-                    Text(
-                      'Verification Result: ${_verificationResult?.isValid == true ? "Verified Successfully!" : "Verification Failed!"}',
-                      style: TextStyle(
-                        color: _verificationResult?.isValid == true ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                     // Optionally display verification details if needed
-                    // Text('Verification Details: ${_verificationResult?.verificationDetails ?? 'N/A'}'),
-                  ],
-                ],
+          child: ListView( // Use ListView for natural scrolling & spacing
+            children: <Widget>[
+              Text(
+                'Platform Version: $_platformVersion',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
               ),
-            ),
+              const SizedBox(height: 16),
+
+              // Status and Error Display
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Status',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          if (_isBusy)
+                             const SizedBox(
+                              height: 20.0,
+                              width: 20.0,
+                              child: CircularProgressIndicator(strokeWidth: 2.0),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(_status, style: Theme.of(context).textTheme.bodyMedium),
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Error: $_errorMessage',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Actions Card
+              Card(
+                 child: Padding(
+                   padding: const EdgeInsets.all(16.0),
+                   child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.stretch, // Make buttons fill width
+                     children: [
+                      ElevatedButton(
+                        // Disable button if busy or assets not ready
+                        onPressed: (_isBusy || _zkEmailInputPath == null || _srsPath == null) ? null : _callProveZkEmail,
+                        child: const Text('Generate zkEmail Proof'),
+                      ),
+                      // Only show Verify button if proof exists
+                      if (_proofResult != null) ...[
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          // Disable if busy or proof is null (redundant check, but safe)
+                          onPressed: (_isBusy || _proofResult?.proof == null) ? null : _callVerifyZkEmail,
+                          child: const Text('Verify zkEmail Proof'),
+                        ),
+                      ]
+                     ],
+                   ),
+                 ),
+              ),
+              const SizedBox(height: 16),
+
+
+              // Proof Results Card
+              if (_proofResult != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Proof Details', style: Theme.of(context).textTheme.titleMedium),
+                        const Divider(height: 16),
+                        ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.timer),
+                          title: Text('Proving Time: ${_provingTimeMillis ?? 'N/A'} ms'),
+                        ),
+                        ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.memory),
+                          title: Text('Proof Size: ${_proofResult?.proof?.length ?? 'N/A'} bytes'),
+                        ),
+                         // Add more details if needed, e.g., public inputs
+                        // ListTile(
+                        //   dense: true,
+                        //   leading: Icon(Icons.input),
+                        //   title: Text('Public Inputs: ${_proofResult?.publicInputs?.toString() ?? 'N/A'}'), // Example
+                        // ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Verification Results Card
+              if (_verificationResult != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                         Text('Verification Result', style: Theme.of(context).textTheme.titleMedium),
+                         const Divider(height: 16),
+                         ListTile(
+                           dense: true,
+                           leading: Icon(
+                             _verificationResult?.isValid == true ? Icons.check_circle : Icons.cancel,
+                             color: _verificationResult?.isValid == true ? Colors.green : Colors.red,
+                           ),
+                           title: Text(
+                             _verificationResult?.isValid == true ? 'Verified Successfully!' : 'Verification Failed!',
+                              style: TextStyle(
+                                color: _verificationResult?.isValid == true ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                           ),
+                         ),
+                         ListTile(
+                           dense: true,
+                           leading: const Icon(Icons.timer),
+                           title: Text('Verification Time: ${_verifyingTimeMillis ?? 'N/A'} ms'),
+                         ),
+                         // Add more details if needed
+                         // ListTile(
+                        //   dense: true,
+                        //   leading: Icon(Icons.info_outline),
+                        //   title: Text('Details: ${_verificationResult?.verificationDetails ?? 'N/A'}'), // Example
+                        // ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
