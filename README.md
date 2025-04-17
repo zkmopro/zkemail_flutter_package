@@ -195,8 +195,65 @@ class VerifyZkEmailResult {
 */
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > The current bindings are built specifically for the standard zkEmail Noir circuit. If you need to update the circuit logic, constraints, or switch to a different proving scheme, you will need to rebuild the underlying native libraries using the Mopro CLI.
+
+## Running the Example App
+
+The `example` directory contains a fully functional Flutter application demonstrating the usage of the `zkemail_flutter_package`. To run the example app:
+
+0.  **Clone the Repository:**
+    ```bash
+    git clone git@github.com:zkmopro/zkemail_flutter_package.git
+    cd zkemail_flutter_package
+    ```
+1.  **Navigate to the example directory:**
+    ```bash
+    cd example
+    ```
+2.  **Ensure dependencies are up to date:**
+    ```bash
+    flutter pub get
+    ```
+3.  **Prepare zkEmail Assets:**
+    *   Make sure you have the necessary SRS (`srs.bin`) and input (`input.json`) files.
+    *   Place these files inside the `example/assets/zkemail/` directory. You might need to create this directory if it doesn't exist.
+    *   The `example/pubspec.yaml` is already configured to look for assets in `assets/zkemail/`.
+    ```yaml
+    # example/pubspec.yaml
+    flutter:
+      uses-material-design: true
+      assets:
+        - assets/zkemail/ # Ensure this line exists
+    ```
+
+4.  **Run the app on a connected device or emulator:**
+    ```bash
+    flutter run
+    ```
+
+## Screenshots
+
+Here's what the example app looks like running on iOS and Android:
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="assets/ios_zkemail_app.png" target="_blank" rel="noopener noreferrer">
+        <img src="assets/ios_zkemail_app.png" alt="iOS zkEmail App Example" width="300"/>
+      </a>
+      <br />
+      <sub><b>iOS</b></sub>
+    </td>
+    <td align="center">
+      <a href="assets/android_zkemail_app.png" target="_blank" rel="noopener noreferrer">
+        <img src="assets/android_zkemail_app.png" alt="Android zkEmail App Example" width="300"/>
+      </a>
+      <br />
+      <sub><b>Android</b></sub>
+    </td>
+  </tr>
+</table>
 
 ## How to Build the Package
 
