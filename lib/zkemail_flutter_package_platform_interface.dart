@@ -1,6 +1,40 @@
+import 'dart:typed_data';
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'zkemail_flutter_package_method_channel.dart';
+
+/// Represents the result of a zkEmail proving operation.
+class ProveZkEmailResult {
+  final Uint8List? proof;
+  final String? error;
+
+  ProveZkEmailResult({this.proof, this.error});
+
+  /// Creates a result object from a map, typically returned by the method channel.
+  factory ProveZkEmailResult.fromMap(Map<dynamic, dynamic> map) {
+    return ProveZkEmailResult(
+      proof: map['proof'] != null ? Uint8List.fromList(List<int>.from(map['proof'])) : null,
+      error: map['error'],
+    );
+  }
+}
+
+/// Represents the result of a zkEmail verification operation.
+class VerifyZkEmailResult {
+  final bool isValid;
+  final String? error;
+
+  VerifyZkEmailResult({required this.isValid, this.error});
+
+    /// Creates a result object from a map, typically returned by the method channel.
+  factory VerifyZkEmailResult.fromMap(Map<dynamic, dynamic> map) {
+    return VerifyZkEmailResult(
+      isValid: map['isValid'] ?? false,
+      error: map['error'],
+    );
+  }
+}
 
 abstract class ZkemailFlutterPackagePlatform extends PlatformInterface {
   /// Constructs a ZkemailFlutterPackagePlatform.
@@ -25,5 +59,25 @@ abstract class ZkemailFlutterPackagePlatform extends PlatformInterface {
 
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
+  }
+
+  Future<String> getApplicationDocumentsDirectory() {
+    throw UnimplementedError('getApplicationDocumentsDirectory() has not been implemented.');
+  }
+
+  /// Generates a zkEmail proof.
+  ///
+  /// Takes the path to the Serialized Rekeying Set (SRS) file and the inputs map.
+  /// The inputs map structure should match the one expected by the native mopro library,
+  /// derived from the zkemail_input.json structure.
+  Future<ProveZkEmailResult> proveZkEmail(String srsPath, Map<String, List<String>> inputs) {
+    throw UnimplementedError('proveZkEmail() has not been implemented.');
+  }
+
+  /// Verifies a zkEmail proof.
+  ///
+  /// Takes the path to the SRS file and the proof bytes.
+  Future<VerifyZkEmailResult> verifyZkEmail(String srsPath, Uint8List proof) {
+    throw UnimplementedError('verifyZkEmail() has not been implemented.');
   }
 }
