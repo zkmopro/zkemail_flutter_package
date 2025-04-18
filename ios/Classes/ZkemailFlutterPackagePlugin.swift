@@ -1,6 +1,6 @@
 import Flutter
 import UIKit
-import moproFFI
+import ZKEmailSwift
 
 public class ZkemailFlutterPackagePlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
