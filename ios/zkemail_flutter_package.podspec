@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'zkemail_flutter_package'
-  s.version          = '0.0.1'
+  s.version          = '0.1.0'
   s.summary          = 'Flutter plugin for zkEmail using Mopro.'
   s.description      = <<-DESC
 A Flutter plugin for zkEmail using Mopro, enabling mobile proving with zkEmail proof generation and verification.

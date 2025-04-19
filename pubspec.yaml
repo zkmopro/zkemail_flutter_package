@@ -1,6 +1,6 @@
 name: zkemail_flutter_package
 description: "A Flutter plugin for zkEmail using Mopro."
-version: 0.0.1
+version: 0.1.0
 homepage: "https://zkmopro.org/"
 
 environment:
