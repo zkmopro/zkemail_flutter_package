@@ -132,6 +132,20 @@ class _MyAppState extends State<MyApp> {
         _provingTimeMillis = stopwatch.elapsedMilliseconds;
         _status = result != null ? 'Proof generated successfully!' : 'Proof generation failed (result is null)';
         _isBusy = false; // End busy state
+
+        // --- Debugging ---
+        print('--- DEBUG: Proof Result ---');
+        print('Proof Result object: $_proofResult');
+        if (_proofResult?.proof != null) {
+          print('Proof data (Uint8List): ${_proofResult!.proof}');
+          print('Proof length: ${_proofResult!.proof!.length}');
+          // Optionally print first few bytes if needed
+          // print('Proof first 10 bytes: ${_proofResult!.proof!.sublist(0, (_proofResult!.proof!.length > 10 ? 10 : _proofResult!.proof!.length))}');
+        } else {
+          print('Proof data is null.');
+        }
+        print('Proof error: ${_proofResult?.error}');
+        print('--- END DEBUG ---');
       });
     } catch (e) {
       setState(() {
