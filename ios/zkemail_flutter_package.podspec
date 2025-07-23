@@ -15,7 +15,7 @@ A Flutter plugin for zkEmail using Mopro, enabling mobile proving with zkEmail p
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'ZKEmailSwift', '~> 0.2.6'
+  s.dependency 'ZKEmailSwift'
   s.platform = :ios, '15.0'
 
   # Flutter.framework does not contain a i386 slice.

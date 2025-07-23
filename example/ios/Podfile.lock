@@ -5,10 +5,10 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - zkemail_flutter_package (0.0.1):
+  - zkemail_flutter_package (0.1.0):
     - Flutter
-    - ZKEmailSwift (~> 0.2.6)
-  - ZKEmailSwift (0.2.6)
+    - ZKEmailSwift
+  - ZKEmailSwift (0.2.7)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -32,10 +32,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
-  zkemail_flutter_package: 7b71491f79c19f7e9d0d22a1434583ebd36adb34
-  ZKEmailSwift: e770350eb9ec843026acd08f70b77d02946be7d1
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  zkemail_flutter_package: 4bd07e656a0bb5d45ddb928eb7829f76f0a7f3ec
+  ZKEmailSwift: ef64f9a150f7a4c0704adb25c8e5da5797a3d19b
 
 PODFILE CHECKSUM: 263a3e327ec8c049d1083c4cdd9efcd73625e571
 
